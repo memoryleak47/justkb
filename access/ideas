@@ -10,11 +10,11 @@
 - XEvIE
 - sudo cat /dev/input/event<0, 1, ... n) | od -x, to find out what event is for keyboard or mouse
 
-"http://ubuntuforums.org/showthread.php?t=864566" siehe ./java
+"http://ubuntuforums.org/showthread.php?t=864566" -> ./java
 "http://www.linuxjournal.com/article/1080"
 "http://linuxpoison.blogspot.de/2012/03/record-play-keystrokes-and-mouse.html"
 "http://unix.stackexchange.com/questions/14879/how-to-inject-keystrokes-via-a-shell-script"
 -> "https://web.archive.org/web/20120710121647/http://www.einfochips.com/download/dash_jan_tip.pdf"
--> "http://thiemonge.org/getting-started-with-uinput" !!!
+-> "http://thiemonge.org/getting-started-with-uinput" -> ./uinput
 	
 	
