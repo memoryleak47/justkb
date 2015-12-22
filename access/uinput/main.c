@@ -19,8 +19,8 @@ int main()
 {
 	int fd;
 
-	fd = open("/dev/input/uinput", O_WRONLY | O_NONBLOCK);
-	if (fd < 0)
+	fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK); // sometime it is called /dev/input/uinput
+	if (fd < 0) // open(…) fails if: http://linux.die.net/man/3/open
 	{
 		printf("can't setup fd");
 		return 1;
