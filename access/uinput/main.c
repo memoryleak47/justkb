@@ -22,7 +22,7 @@ int main()
 	fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK); // sometime it is called /dev/input/uinput
 	if (fd < 0) // open(…) fails if: http://linux.die.net/man/3/open
 	{
-		printf("can't setup fd");
+		printf("can't setup fd\n");
 		return 1;
 	}
 	/*ret = */ioctl(fd, UI_SET_EVBIT, EV_KEY);
