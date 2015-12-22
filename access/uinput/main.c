@@ -25,12 +25,23 @@ int main()
 		printf("can't setup fd\n");
 		return 1;
 	}
-	/*ret = */ioctl(fd, UI_SET_EVBIT, EV_KEY);
-	/*ret = */ioctl(fd, UI_SET_EVBIT, EV_SYN);
+	if (ioctl(fd, UI_SET_EVBIT, EV_KEY) != 0)
+	{
+		printf("ioctl(UI_SET_EVBI, EV_KEY) throws error\n");
+		return 1;
+	}
+	if (ioctl(fd, UI_SET_EVBIT, EV_SYN) != 0)
+	{
+		printf("iioctl(fd, UI_SET_EVBIT, EV_SYN) throws error\n");
+		return 1;
+	}
 
-	// enabled 'd'
-	/*ret = */ioctl(fd, UI_SET_KEYBIT, KEY_D);
-
+	// enables 'd'
+	if (ioctl(fd, UI_SET_KEYBIT, KEY_D) != 0)
+	{
+		printf("ioctl(fd, UI_SET_KEYBIT, KEY_D) throws error\n");
+		return 1;
+	}
 	struct uinput_user_dev uidev;
 
 	memset(&uidev, 0, sizeof(uidev));
@@ -41,8 +52,16 @@ int main()
 	uidev.id.product = 0xfedc;
 	uidev.id.version = 1;
 
-	/*ret = */write(fd, &uidev, sizeof(uidev));
-	/*ret = */ioctl(fd, UI_DEV_CREATE);
+	if (write(fd, &uidev, sizeof(uidev)) != 0) // throws error
+	{
+		printf("write(fd, &uidev, sizeof(uidev)) throws error\n");
+		return 1;
+	}
+	if (ioctl(fd, UI_DEV_CREATE) != 0)
+	{
+		printf("ioctl(fd, UI_DEV_CREATE) throws error\n");
+		return 1;
+	}
 
 
 	// press d
@@ -54,7 +73,11 @@ int main()
 		ev.code = KEY_D;
 		ev.value = 1;
 
-		/*ret = */write(fd, &ev, sizeof(ev));
+		if (write(fd, &ev, sizeof(ev)) != 0)
+		{
+			printf("write(fd, &ev, sizeof(ev)) throws error\n");
+			return 1;
+		}
 	return 0;
 }
 
