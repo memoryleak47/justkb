@@ -4,3 +4,5 @@ run:
 	@rm exe
 compile:
 	cCompile
+stdrun: run
+	@setKeymap std

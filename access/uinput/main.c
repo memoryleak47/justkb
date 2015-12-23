@@ -81,6 +81,14 @@ int main()
 			printf("write(fd, &ev, sizeof(ev)) throws error (%s)\n", strerror(errno));
 			return 1;
 		}
+
+
+	// destroy fd
+	if (ioctl(fd, UI_DEV_DESTROY) != 0)
+	{
+		printf("ioctl(fd, UI_DEV_DESTROY) throws error (%s)\n)", strerror(errno));
+	}	
+
 	return 0;
 }
 
