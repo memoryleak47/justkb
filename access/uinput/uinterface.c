@@ -42,29 +42,25 @@ void uninit()
 
 void moveMouse(int dx, int dy)
 {
-	int i;
-	for (i = 0; i < 20; i++)
-	{
-		memset(&ev, 0, sizeof(struct input_event));
-		ev.type = EV_REL;
-		ev.code = REL_X;
-		ev.value = dx;
-		if(write(fd, &ev, sizeof(struct input_event)) < 0)
-			die("error: write");
+	memset(&ev, 0, sizeof(struct input_event));
+	ev.type = EV_REL;
+	ev.code = REL_X;
+	ev.value = dx;
+	if(write(fd, &ev, sizeof(struct input_event)) < 0)
+		die("error: write");
 
-		memset(&ev, 0, sizeof(struct input_event));
-		ev.type = EV_REL;
-		ev.code = REL_Y;
-		ev.value = dy;
-		if(write(fd, &ev, sizeof(struct input_event)) < 0)
-			die("error: write");
-		
-		memset(&ev, 0, sizeof(struct input_event));
-		ev.type = EV_SYN;
-		ev.code = 0;
-		ev.value = 0;
-		if (write(fd, &ev, sizeof(struct input_event)) < 0)
-			die("error: write");
-	}
+	memset(&ev, 0, sizeof(struct input_event));
+	ev.type = EV_REL;
+	ev.code = REL_Y;
+	ev.value = dy;
+	if(write(fd, &ev, sizeof(struct input_event)) < 0)
+		die("error: write");
+	
+	memset(&ev, 0, sizeof(struct input_event));
+	ev.type = EV_SYN;
+	ev.code = 0;
+	ev.value = 0;
+	if (write(fd, &ev, sizeof(struct input_event)) < 0)
+		die("error: write");
 	usleep(15000);
 }
