@@ -1,8 +1,8 @@
 run:
-	@cCompile
+	@c-compile
 	@sudo ./exe
 	@rm exe
 compile:
-	cCompile
+	c-compile
 stdrun: run
 	@setKeymap std
