@@ -36,7 +36,7 @@ void init()
 
 	if (ioctl(fd, UI_DEV_CREATE) < 0)
 		die("error: ioctl");
-	usleep(5000);
+	usleep(100000);
 }
 
 void uninit()
