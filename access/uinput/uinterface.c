@@ -2,7 +2,7 @@
 
 void init()
 {
-	fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
+	fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK); // oder O_WRONLY | O_NDELAY
 	if (fd < 0)
 		die("error: open");
 
@@ -17,6 +17,12 @@ void init()
 		die("error: ioctl");
 	if (ioctl(fd, UI_SET_RELBIT, REL_Y) < 0)
 		die("error: ioctl");
+	int i = 0;
+	for (i = 0; i < 256; i++)
+	{
+		if (ioctl(fd, UI_SET_KEYBIT, i) < 0)
+			die("error: ioctl");
+	}
 
 	memset(&uidev, 0, sizeof(uidev));
 	snprintf(uidev.name, UINPUT_MAX_NAME_SIZE, "uinput-sample");
@@ -46,14 +52,14 @@ void moveMouse(int dx, int dy)
 	ev.type = EV_REL;
 	ev.code = REL_X;
 	ev.value = dx;
-	if(write(fd, &ev, sizeof(struct input_event)) < 0)
+	if (write(fd, &ev, sizeof(struct input_event)) < 0)
 		die("error: write");
 
 	memset(&ev, 0, sizeof(struct input_event));
 	ev.type = EV_REL;
 	ev.code = REL_Y;
 	ev.value = dy;
-	if(write(fd, &ev, sizeof(struct input_event)) < 0)
+	if (write(fd, &ev, sizeof(struct input_event)) < 0)
 		die("error: write");
 	
 	memset(&ev, 0, sizeof(struct input_event));
@@ -63,4 +69,28 @@ void moveMouse(int dx, int dy)
 	if (write(fd, &ev, sizeof(struct input_event)) < 0)
 		die("error: write");
 	usleep(15000);
+}
+
+void applyKeyEvent(unsigned int keycode, int keyvalue) // src="http://www.linuxforums.org/forum/ubuntu-linux/161718-its-no-effect-when-using-uinput.html"
+{
+	struct input_event event;
+	gettimeofday(&event.time, NULL);
+
+	event.type = EV_KEY;
+	event.code = keycode;
+	event.value = keyvalue;
+	
+	if (write(fd, &event, sizeof(event)) < 0)
+	{
+		die("error: write");
+	}
+
+	event.type = EV_SYN;
+	event.code = SYN_REPORT;
+	event.value = 0;
+
+	if (write(fd, &event, sizeof(event)) < 0)
+	{
+		die("error: write");
+	}
 }

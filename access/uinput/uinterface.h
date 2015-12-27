@@ -19,3 +19,4 @@ struct input_event ev;
 void init();
 void uninit();
 void moveMouse(int dx, int dy);
+void applyKeyEvent(unsigned int keycode, int keyvalue);
