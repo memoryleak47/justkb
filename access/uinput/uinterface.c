@@ -36,7 +36,7 @@ void init()
 
 	if (ioctl(fd, UI_DEV_CREATE) < 0)
 		die("error: ioctl");
-	sleep(2);
+	usleep(5000);
 }
 
 void uninit()
@@ -68,7 +68,6 @@ void moveMouse(int dx, int dy)
 	ev.value = 0;
 	if (write(fd, &ev, sizeof(struct input_event)) < 0)
 		die("error: write");
-	usleep(15000);
 }
 
 void applyKeyEvent(unsigned int keycode, int keyvalue) // src="http://www.linuxforums.org/forum/ubuntu-linux/161718-its-no-effect-when-using-uinput.html"
