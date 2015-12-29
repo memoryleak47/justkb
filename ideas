@@ -1,6 +1,8 @@
 # ACCESS
 # here are all the methods and ideas listed, how to access the keyboard
 
+# fake-input
+
 "http://echochamber.me/viewtopic.php?f=11&t=35964"
 - java library
 - interceptty 
@@ -16,5 +18,12 @@
 "http://unix.stackexchange.com/questions/14879/how-to-inject-keystrokes-via-a-shell-script"
 -> "https://web.archive.org/web/20120710121647/http://www.einfochips.com/download/dash_jan_tip.pdf"
 -> "http://thiemonge.org/getting-started-with-uinput" -> ./uinput
-	
-	
+
+# steal-input
+
+cat $(tty)
+
+"unix.stackexchange.com/questions/129159/record-every-keystroke-and-store-in-a-file"
+xinput list |
+  grep -Po 'id=\K\d+(?=.*slave\s*keyboard)' |
+  xargs -P0 -n1 xinput test
