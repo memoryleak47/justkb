@@ -2,7 +2,9 @@
 
 void init()
 {
-	fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK); // oder O_WRONLY | O_NDELAY
+	fd = open("/dev/uinput", O_WRONLY, O_NONBLOCK); // oder O_WRONLY | O_NDELAY
+	if (fd < 0)
+		fd = open("/dev/input/uinput", O_WRONLY, O_NONBLOCK);
 	if (fd < 0)
 		die("error: open");
 
