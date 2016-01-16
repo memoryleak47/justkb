@@ -7,6 +7,9 @@
 #include <linux/input.h>
 #include <linux/uinput.h>
 
+#include <X11/Xlib.h>
+
+
 #define die(str, args...) do { \
 	perror(str); \
 	exit(EXIT_FAILURE); \
@@ -14,9 +17,14 @@
 
 int fd;
 struct uinput_user_dev uidev;
-struct input_event ev;
+struct input_event iev;
+
+Display *dpy;
+XEvent xev;
+char *s;
 
 void init();
 void uninit();
 void moveMouse(int dx, int dy);
 void applyKeyEvent(unsigned int keycode, int keyvalue);
+void run();

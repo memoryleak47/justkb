@@ -1,4 +1,0 @@
-# README
-
-run 'sudo ./exe /dev/input/event0'
-sometimes it is 'sudo ./exe /dev/input/event{1,2,3,4,...}' too

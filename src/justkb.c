@@ -1,4 +1,4 @@
-#include "uinterface.h"
+#include "justkb.h"
 
 void init()
 {
@@ -39,6 +39,22 @@ void init()
 	if (ioctl(fd, UI_DEV_CREATE) < 0)
 		die("error: ioctl");
 	usleep(100000);
+
+
+
+
+	if (NULL==(dpy=XOpenDisplay(NULL)))
+	{
+		die("dpy=XopenDisplay(NULL)");
+	}
+
+	/*
+	 * You might want to warp the pointer to somewhere that you know
+	 * is not associated with anything that will drain events.
+	 *  (void)XWarpPointer(dpy, None, DefaultRootWindow(dpy), 0, 0, 0, 0, x, y);
+	 */
+
+	XGrabKeyboard(dpy, DefaultRootWindow(dpy), True, GrabModeAsync, GrabModeAsync, CurrentTime);
 }
 
 void uninit()
@@ -46,29 +62,37 @@ void uninit()
 	if (ioctl(fd, UI_DEV_DESTROY) < 0)
 		die("error: ioctl");
 	close(fd);
+
+	XUngrabKeyboard(dpy, CurrentTime);
+
+	if (XCloseDisplay(dpy))
+	{
+		die("XCloseDisplayer(dpy)");
+	}
 }
 
 void moveMouse(int dx, int dy)
 {
-	memset(&ev, 0, sizeof(struct input_event));
-	ev.type = EV_REL;
-	ev.code = REL_X;
-	ev.value = dx;
-	if (write(fd, &ev, sizeof(struct input_event)) < 0)
+	memset(&iev, 0, sizeof(struct input_event));
+	iev.type = EV_REL;
+
+	iev.code = REL_X;
+	iev.value = dx;
+	if (write(fd, &iev, sizeof(struct input_event)) < 0)
 		die("error: write");
 
-	memset(&ev, 0, sizeof(struct input_event));
-	ev.type = EV_REL;
-	ev.code = REL_Y;
-	ev.value = dy;
-	if (write(fd, &ev, sizeof(struct input_event)) < 0)
+	memset(&iev, 0, sizeof(struct input_event));
+	iev.type = EV_REL;
+	iev.code = REL_Y;
+	iev.value = dy;
+	if (write(fd, &iev, sizeof(struct input_event)) < 0)
 		die("error: write");
 	
-	memset(&ev, 0, sizeof(struct input_event));
-	ev.type = EV_SYN;
-	ev.code = 0;
-	ev.value = 0;
-	if (write(fd, &ev, sizeof(struct input_event)) < 0)
+	memset(&iev, 0, sizeof(struct input_event));
+	iev.type = EV_SYN;
+	iev.code = 0;
+	iev.value = 0;
+	if (write(fd, &iev, sizeof(struct input_event)) < 0)
 		die("error: write");
 }
 
@@ -93,5 +117,42 @@ void applyKeyEvent(unsigned int keycode, int keyvalue) // src="http://www.linuxf
 	if (write(fd, &event, sizeof(event)) < 0)
 	{
 		die("error: write");
+	}
+}
+
+void handleKeyEvent(unsigned int key)
+{
+	printf("key is: %d\n", key);
+}
+
+void run()
+{
+	unsigned int kc;
+	int quit = 0;
+
+	while (!quit)
+	{
+		XNextEvent(dpy, &xev);
+		switch (xev.type)
+		{
+			case KeyPress:
+				kc = ((XKeyPressedEvent*)&xev)->keycode;
+				handleKeyEvent(kc);
+				if (kc == 24) // kc is q
+					quit=~0;
+				break;
+			case Expose:
+					/* Often, it's a good idea to drain residual exposes to
+					 * avoid visiting Blinky's Fun Club. */
+					while (XCheckTypedEvent(dpy, Expose, &xev)) /* empty body */ ;
+				break;
+			case ButtonPress:
+			case ButtonRelease:
+			case KeyRelease:
+			case MotionNotify:
+			case ConfigureNotify:
+			default:
+				break;
+		}
 	}
 }
