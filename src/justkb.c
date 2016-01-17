@@ -140,10 +140,8 @@ void applyKeyEvent(unsigned int keycode, int keyvalue) // src="http://www.linuxf
 void handleKeyEvent(unsigned int key)
 {
 	printf("key is: %d\n", key);
-	sleep(1);
 	applyKeyEvent(key, 1);
 	applyKeyEvent(key, 0);
-	sleep(1);
 }
 
 void run()
