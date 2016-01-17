@@ -1,5 +1,12 @@
 #include "justkb.h"
 
+void handleKeyEvent(unsigned int key)
+{
+	printf("key is: %d\n", key);
+	applyKeyEvent(key, 1);
+	applyKeyEvent(key, 0);
+}
+
 void init()
 {
 	initUinput();
@@ -8,6 +15,7 @@ void init()
 
 void initUinput()
 {
+	struct uinput_user_dev uidev;
 	fd = open("/dev/uinput", O_WRONLY, O_NONBLOCK); // oder O_WRONLY | O_NDELAY
 	if (fd < 0)
 		fd = open("/dev/input/uinput", O_WRONLY, O_NONBLOCK);
@@ -90,6 +98,7 @@ void uninitX()
 
 void moveMouse(int dx, int dy)
 {
+	struct input_event iev;
 	memset(&iev, 0, sizeof(struct input_event));
 	iev.type = EV_REL;
 
@@ -137,15 +146,9 @@ void applyKeyEvent(unsigned int keycode, int keyvalue) // src="http://www.linuxf
 	}
 }
 
-void handleKeyEvent(unsigned int key)
-{
-	printf("key is: %d\n", key);
-	applyKeyEvent(key, 1);
-	applyKeyEvent(key, 0);
-}
-
 void run()
 {
+	XEvent xev;
 	unsigned int kc;
 	int quit = 0;
 

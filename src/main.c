@@ -5,6 +5,5 @@ int main()
 	init();
 	run();
 	uninit();
-
 	return 0;
 }

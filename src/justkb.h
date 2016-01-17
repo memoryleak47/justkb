@@ -16,12 +16,10 @@
 	} while(0)
 
 int fd;
-struct uinput_user_dev uidev;
-struct input_event iev;
-
 Display *dpy;
-XEvent xev;
-char *s;
+
+
+void handleKeyEvent(unsigned int key);
 
 void init();
 void initUinput();
