@@ -15,10 +15,6 @@
 	exit(EXIT_FAILURE); \
 	} while(0)
 
-int fd;
-Display *dpy;
-
-
 void handleKeyEvent(unsigned int key);
 
 void init();
