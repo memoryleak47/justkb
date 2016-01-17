@@ -24,7 +24,13 @@ XEvent xev;
 char *s;
 
 void init();
+void initUinput();
+void initX();
+
 void uninit();
+void uninitUinput();
+void uninitX();
+
 void moveMouse(int dx, int dy);
 void applyKeyEvent(unsigned int keycode, int keyvalue);
 void run();

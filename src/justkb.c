@@ -2,6 +2,12 @@
 
 void init()
 {
+	initUinput();
+	initX();
+}
+
+void initUinput()
+{
 	fd = open("/dev/uinput", O_WRONLY, O_NONBLOCK); // oder O_WRONLY | O_NDELAY
 	if (fd < 0)
 		fd = open("/dev/input/uinput", O_WRONLY, O_NONBLOCK);
@@ -39,10 +45,10 @@ void init()
 	if (ioctl(fd, UI_DEV_CREATE) < 0)
 		die("error: ioctl");
 	usleep(100000);
+}
 
-
-
-
+void initX()
+{
 	if (NULL==(dpy=XOpenDisplay(NULL)))
 	{
 		die("dpy=XopenDisplay(NULL)");
@@ -57,12 +63,23 @@ void init()
 	XGrabKeyboard(dpy, DefaultRootWindow(dpy), True, GrabModeAsync, GrabModeAsync, CurrentTime);
 }
 
+
 void uninit()
+{
+	uninitUinput();
+	uninitX();
+}
+
+void uninitUinput()
 {
 	if (ioctl(fd, UI_DEV_DESTROY) < 0)
 		die("error: ioctl");
 	close(fd);
 
+}
+
+void uninitX()
+{
 	XUngrabKeyboard(dpy, CurrentTime);
 
 	if (XCloseDisplay(dpy))
@@ -123,6 +140,10 @@ void applyKeyEvent(unsigned int keycode, int keyvalue) // src="http://www.linuxf
 void handleKeyEvent(unsigned int key)
 {
 	printf("key is: %d\n", key);
+	sleep(1);
+	applyKeyEvent(key, 1);
+	applyKeyEvent(key, 0);
+	sleep(1);
 }
 
 void run()
@@ -137,9 +158,14 @@ void run()
 		{
 			case KeyPress:
 				kc = ((XKeyPressedEvent*)&xev)->keycode;
-				handleKeyEvent(kc);
 				if (kc == 24) // kc is q
+				{
 					quit=~0;
+					break;
+				}
+				uninitX();
+				handleKeyEvent(kc);
+				initX();
 				break;
 			case Expose:
 					/* Often, it's a good idea to drain residual exposes to
