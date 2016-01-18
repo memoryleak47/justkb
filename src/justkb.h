@@ -13,7 +13,7 @@
 #define die(str, args...) do { \
 	perror(str); \
 	exit(EXIT_FAILURE); \
-	} while(0)
+	} while (0)
 
 void handleKeyEvent(unsigned int key);
 

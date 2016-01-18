@@ -3,11 +3,10 @@
 int ui_fd;
 Display *x_display;
 
-void handleKeyEvent(unsigned int key)
+void handleKeyEvent(unsigned int key, int state)
 {
-	printf("key is: %d\n", key);
-	applyKeyEvent(key, 1);
-	applyKeyEvent(key, 0);
+//	printf("key is: %d\n", key);
+	applyKeyEvent(key, state);
 }
 
 void init()
@@ -196,20 +195,21 @@ void run()
 					break;
 				}
 				uninitX();
-				handleKeyEvent(keycode);
+				handleKeyEvent(keycode, 1);
 				initX();
 				break;
 			case KeyRelease:
-				printf("\nTODO - release\n");
+				keycode = ((XKeyPressedEvent*)&x_event)->keycode;
+				uninitX();
+				handleKeyEvent(keycode, 0);
+				initX();
 				break;
 			case ButtonPress:
 			case ButtonRelease:
 				printf("TODO");
 				break;
 			case Expose:
-					/* Often, it's a good idea to drain residual exposes to
-					 * avoid visiting Blinky's Fun Club. */
-					while (XCheckTypedEvent(x_display, Expose, &x_event)) /* empty body */ ;
+				printf("whats going on here in expose?");
 				break;
 			case MotionNotify:
 			case ConfigureNotify:
