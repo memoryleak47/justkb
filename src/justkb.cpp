@@ -176,45 +176,56 @@ void applyKeyEvent(unsigned int keycode, int keyvalue) // src="http://www.linuxf
 	}
 }
 
+void handleEvent(const XEvent &x_event)
+{
+	switch (x_event.type)
+	{
+		case KeyPress:
+		{
+			int keycode = ((XKeyPressedEvent*)&x_event)->keycode;
+			if (keycode == 24) // q
+			{
+				quit("q is pressed -> quitting");
+			}
+			uninitX();
+			handleKeyEvent(keycode, 1);
+			initX();
+			break;
+		}
+		case KeyRelease:
+		{
+			uninitX();
+			handleKeyEvent(((XKeyPressedEvent*)&x_event)->keycode, 0);
+			initX();
+			break;
+		}
+		case ButtonPress:
+		case ButtonRelease:
+			printf("TODO");
+			break;
+		case Expose:
+			printf("whats going on here in expose?");
+			break;
+		case MotionNotify:
+		case ConfigureNotify:
+		default:
+			break;
+	}
+}
+
 void run()
 {
 	XEvent x_event;
-	unsigned int keycode;
-	int quit = 0;
+	unsigned int counter = 0;
 
-	while (!quit)
+	while (true)
 	{
 		XNextEvent(x_display, &x_event);
-		switch (x_event.type)
+		handleEvent(x_event);
+		if (counter > 10)
 		{
-			case KeyPress:
-				keycode = ((XKeyPressedEvent*)&x_event)->keycode;
-				if (keycode == 24) // q
-				{
-					quit=~0;
-					break;
-				}
-				uninitX();
-				handleKeyEvent(keycode, 1);
-				initX();
-				break;
-			case KeyRelease:
-				keycode = ((XKeyPressedEvent*)&x_event)->keycode;
-				uninitX();
-				handleKeyEvent(keycode, 0);
-				initX();
-				break;
-			case ButtonPress:
-			case ButtonRelease:
-				printf("TODO");
-				break;
-			case Expose:
-				printf("whats going on here in expose?");
-				break;
-			case MotionNotify:
-			case ConfigureNotify:
-			default:
-				break;
+			quit("counter > 10 -> quitting");
 		}
+		counter++;
 	}
 }

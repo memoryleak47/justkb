@@ -15,16 +15,23 @@
 	exit(EXIT_FAILURE); \
 	} while (0)
 
-void handleKeyEvent(unsigned int key);
+#define quit(str) do { \
+	printf("\n%s\n", str); \
+	exit(EXIT_SUCCESS); \
+	} while (0)
 
-void init();
+void handleKeyEvent(unsigned int key, int state);
+
+void init(); // calls initUinput() & initX()
 void initUinput();
 void initX();
 
-void uninit();
+void uninit(); // calls uninitUinput() & uninitX()
 void uninitUinput();
 void uninitX();
 
 void moveMouse(int dx, int dy);
 void applyKeyEvent(unsigned int keycode, int keyvalue);
-void run();
+
+void handleEvent(const XEvent &x_event); // calls handleKeyEvent();
+void run(); // onEvent: calls handleEvent(XEvent)
