@@ -88,7 +88,7 @@ void initX()
 		die("x_display = XopenDisplay(NULL)");
 	}
 
-	XGrabKeyboard(x_display, DefaultRootWindow(x_display), True, GrabModeAsync, GrabModeAsync, CurrentTime);
+	XGrabKeyboard(x_display, DefaultRootWindow(x_display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
 }
 
 
