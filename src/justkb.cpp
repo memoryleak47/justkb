@@ -1,5 +1,12 @@
 #include "justkb.h"
 
+#define quit(str) do { \
+	printf("\n%s\n", str); \
+	quit = true; \
+	} while (0)
+
+bool quit = false;
+
 int ui_fd;
 Display *x_display;
 
@@ -96,7 +103,7 @@ void run()
 	XEvent x_event;
 	unsigned int counter = 0;
 
-	while (true)
+	while (!quit)
 	{
 		XNextEvent(x_display, &x_event);
 		handleEvent(x_event);

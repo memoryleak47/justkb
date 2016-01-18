@@ -13,11 +13,6 @@
 	exit(EXIT_FAILURE); \
 	} while (0)
 
-#define quit(str) do { \
-	printf("\n%s\n", str); \
-	exit(EXIT_SUCCESS); \
-	} while (0)
-
 void init();
 void uninit();
 void handleEvent(const XEvent &x_event);
