@@ -1,5 +1,7 @@
 #include "justkb.h"
 
+#define MAX_COUNTER 30
+
 #define quit(str) do { \
 	printf("\n%s\n", str); \
 	quit = true; \
@@ -107,9 +109,9 @@ void run()
 	{
 		XNextEvent(x_display, &x_event);
 		handleEvent(x_event);
-		if (counter > 10)
+		if (counter > MAX_COUNTER)
 		{
-			quit("counter > 10 -> quitting");
+			quit("counter > MAX_COUNTER -> quitting");
 		}
 		counter++;
 	}
