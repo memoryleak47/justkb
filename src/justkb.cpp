@@ -3,85 +3,7 @@
 int ui_fd;
 Display *x_display;
 
-void handleKeyEvent(unsigned int key, int state)
-{
-//	printf("key is: %d\n", key);
-	applyKeyEvent(key, state);
-}
-
 void init()
-{
-	initUinput();
-	initX();
-}
-
-void initUinput()
-{
-	struct uinput_user_dev ui_dev;
-	ui_fd = open("/dev/uinput", O_WRONLY, O_NONBLOCK); // oder O_WRONLY | O_NDELAY
-
-	if (ui_fd < 0)
-	{
-		ui_fd = open("/dev/input/uinput", O_WRONLY, O_NONBLOCK);
-	}
-
-	if (ui_fd < 0)
-	{
-		die("error: open");
-	}
-
-	if (ioctl(ui_fd, UI_SET_EVBIT, EV_KEY) < 0)
-	{
-		die("error: ioctl");
-	}
-
-	if (ioctl(ui_fd, UI_SET_KEYBIT, BTN_LEFT) < 0)
-	{
-		die("error: ioctl");
-	}
-
-	if (ioctl(ui_fd, UI_SET_EVBIT, EV_REL) < 0)
-	{
-		die("error: ioctl");
-	}
-
-	if (ioctl(ui_fd, UI_SET_RELBIT, REL_X) < 0)
-	{
-		die("error: ioctl");
-	}
-
-	if (ioctl(ui_fd, UI_SET_RELBIT, REL_Y) < 0)
-	{
-		die("error: ioctl");
-	}
-
-	for (int i = 0; i < 256; i++)
-	{
-		if (ioctl(ui_fd, UI_SET_KEYBIT, i) < 0)
-			die("error: ioctl");
-	}
-
-	memset(&ui_dev, 0, sizeof(ui_dev));
-	snprintf(ui_dev.name, UINPUT_MAX_NAME_SIZE, "uinput-sample");
-	ui_dev.id.bustype = BUS_USB;
-	ui_dev.id.vendor = 0x1;
-	ui_dev.id.product = 0x1;
-	ui_dev.id.version = 1;
-
-	if (write(ui_fd, &ui_dev, sizeof(ui_dev)) < 0)
-	{
-		die("error: write");
-	}
-
-	if (ioctl(ui_fd, UI_DEV_CREATE) < 0)
-	{
-		die("error: ioctl");
-	}
-
-	usleep(100000);
-}
-
-void initX()
 {
 	if (NULL == (x_display = XOpenDisplay(NULL)))
 	{
@@ -94,21 +16,6 @@ void initX()
 
 void uninit()
 {
-	uninitUinput();
-	uninitX();
-}
-
-void uninitUinput()
-{
-	if (ioctl(ui_fd, UI_DEV_DESTROY) < 0)
-	{
-		die("error: ioctl");
-	}
-	close(ui_fd);
-}
-
-void uninitX()
-{
 	XUngrabKeyboard(x_display, CurrentTime);
 
 	if (XCloseDisplay(x_display))
@@ -117,64 +24,36 @@ void uninitX()
 	}
 }
 
-void moveMouse(int dx, int dy)
+XKeyEvent createKeyEvent(bool press, int keycode, int modifiers)
 {
-	struct input_event ui_event;
-	memset(&ui_event, 0, sizeof(struct input_event));
-	ui_event.type = EV_REL;
+	Window root = XDefaultRootWindow(x_display);
+	Window focus;
+	int revert;
+	XGetInputFocus(x_display, &focus, &revert);
 
-	ui_event.code = REL_X;
-	ui_event.value = dx;
+	XKeyEvent event;
 
-	if (write(ui_fd, &ui_event, sizeof(struct input_event)) < 0)
-	{
-		die("error: write");
-	}
+	event.display = x_display;
+	event.window = focus;
+	event.root = root;
+	event.subwindow	= None;
+	event.time = CurrentTime;
+	event.x = 1;
+	event.y = 1;
+	event.x_root = 1;
+	event.y_root = 1;
+	event.same_screen = true;
+	event.keycode = keycode;
+	event.state = modifiers;
 
-	memset(&ui_event, 0, sizeof(struct input_event));
-	ui_event.type = EV_REL;
-	ui_event.code = REL_Y;
-	ui_event.value = dy;
+	if (press)
+		event.type = KeyPress;
+	else
+		event.type = KeyRelease;
 
-	if (write(ui_fd, &ui_event, sizeof(struct input_event)) < 0)
-	{
-		die("error: write");
-	}
-	
-	memset(&ui_event, 0, sizeof(struct input_event));
-	ui_event.type = EV_SYN;
-	ui_event.code = 0;
-	ui_event.value = 0;
-
-	if (write(ui_fd, &ui_event, sizeof(struct input_event)) < 0)
-	{
-		die("error: write");
-	}
+	return event;
 }
 
-void applyKeyEvent(unsigned int keycode, int keyvalue) // src="http://www.linuxforums.org/forum/ubuntu-linux/161718-its-no-effect-when-using-uinput.html"
-{
-	struct input_event ui_event;
-	gettimeofday(&ui_event.time, NULL);
-
-	ui_event.type = EV_KEY;
-	ui_event.code = keycode;
-	ui_event.value = keyvalue;
-	
-	if (write(ui_fd, &ui_event, sizeof(ui_event)) < 0)
-	{
-		die("error: write");
-	}
-
-	ui_event.type = EV_SYN;
-	ui_event.code = SYN_REPORT;
-	ui_event.value = 0;
-
-	if (write(ui_fd, &ui_event, sizeof(ui_event)) < 0)
-	{
-		die("error: write");
-	}
-}
 
 void handleEvent(const XEvent &x_event)
 {
@@ -187,16 +66,15 @@ void handleEvent(const XEvent &x_event)
 			{
 				quit("q is pressed -> quitting");
 			}
-			uninitX();
-			handleKeyEvent(keycode, 1);
-			initX();
+			XKeyEvent event = createKeyEvent(true, keycode+1 /* TODO remove +1 */, 0);
+			XSendEvent(event.display, event.window, true, KeyPressMask, (XEvent*)&event);
 			break;
 		}
 		case KeyRelease:
 		{
-			uninitX();
-			handleKeyEvent(((XKeyPressedEvent*)&x_event)->keycode, 0);
-			initX();
+			int keycode = ((XKeyPressedEvent*)&x_event)->keycode;
+			XKeyEvent event = createKeyEvent(false, keycode+1 /* TODO remove +1 */, 0);
+			XSendEvent(event.display, event.window, true, KeyPressMask, (XEvent*)&event);
 			break;
 		}
 		case ButtonPress:
