@@ -1,9 +1,7 @@
-#include "justkb.h"
+#include "justkb.hpp"
 
 int main()
 {
-	init();
-	run();
-	uninit();
+	Jkb::start();
 	return 0;
 }

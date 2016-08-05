@@ -1,40 +1,43 @@
-#include "justkb.h"
+#include "justkb.hpp"
 
 #include <X11/extensions/XTest.h>
+#include <string>
+#include <iostream>
 
-#define MAX_COUNTER 30
+Display* Jkb::display;
+bool Jkb::running;
 
-#define quit(str) do { \
-	printf("\n%s\n", str); \
-	quit = true; \
-	} while (0)
-
-bool quit = false;
-
-int ui_fd;
-Display *x_display;
-
-void init()
+void Jkb::start()
 {
-	if (NULL == (x_display = XOpenDisplay(NULL)))
-	{
-		die("x_display = XopenDisplay(NULL)");
-	}
-
-	XGrabKeyboard(x_display, DefaultRootWindow(x_display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
+	init();
+	run();
+	uninit();
 }
 
-void uninit()
+void Jkb::init()
 {
-	XUngrabKeyboard(x_display, CurrentTime);
-
-	if (XCloseDisplay(x_display))
+	running = true;
+	if (NULL == (display = XOpenDisplay(NULL)))
 	{
-		die("XCloseDisplayer(x_display)");
+		std::cout << "display = XopenDisplay(NULL)" << std::endl;
+		running = false;
+	}
+
+	XGrabKeyboard(display, DefaultRootWindow(display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
+}
+
+void Jkb::uninit()
+{
+	XUngrabKeyboard(display, CurrentTime);
+
+	if (XCloseDisplay(display))
+	{
+		std::cout << "XCloseDisplayer(display)" << std::endl;
+		running = false;
 	}
 }
 
-void handleEvent(const XEvent &x_event)
+void Jkb::handleEvent(const XEvent &x_event)
 {
 	switch (x_event.type)
 	{
@@ -43,7 +46,8 @@ void handleEvent(const XEvent &x_event)
 			int keycode = ((XKeyPressedEvent*)&x_event)->keycode;
 			if (keycode == 24) // q
 			{
-				quit("q is pressed -> quitting");
+				std::cout << "q is pressed -> quitting" << std::endl;
+				running = false;
 			}
 			sendKey(42, true);
 			break;
@@ -63,26 +67,27 @@ void handleEvent(const XEvent &x_event)
 	}
 }
 
-void run()
+void Jkb::run()
 {
-	XEvent x_event;
+	XEvent ev;
 	unsigned int counter = 0;
 
-	while (!quit)
+	while (running)
 	{
-		XNextEvent(x_display, &x_event);
-		handleEvent(x_event);
-		if (counter > MAX_COUNTER)
+		XNextEvent(display, &ev);
+		handleEvent(ev);
+		if (counter > 100)
 		{
-			quit("counter > MAX_COUNTER -> quitting");
+			std::cout << "counter > 100 -> quitting" << std::endl;
+			running = false;
 		}
 		counter++;
 	}
 }
 
-void sendKey(int keycode, bool pressed)
+void Jkb::sendKey(int keycode, bool pressed)
 {
-	XUngrabKeyboard(x_display, CurrentTime);
-	XTestFakeKeyEvent(x_display, keycode, pressed, 0);
-	XGrabKeyboard(x_display, DefaultRootWindow(x_display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
+	XUngrabKeyboard(display, CurrentTime);
+	XTestFakeKeyEvent(display, keycode, pressed, 0);
+	XGrabKeyboard(display, DefaultRootWindow(display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
 }
