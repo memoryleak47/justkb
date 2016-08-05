@@ -1,5 +1,7 @@
 #include "justkb.h"
 
+#include <X11/extensions/XTest.h>
+
 #define MAX_COUNTER 30
 
 #define quit(str) do { \
@@ -22,7 +24,6 @@ void init()
 	XGrabKeyboard(x_display, DefaultRootWindow(x_display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
 }
 
-
 void uninit()
 {
 	XUngrabKeyboard(x_display, CurrentTime);
@@ -32,37 +33,6 @@ void uninit()
 		die("XCloseDisplayer(x_display)");
 	}
 }
-
-XKeyEvent createKeyEvent(bool press, int keycode, int modifiers)
-{
-	Window root = XDefaultRootWindow(x_display);
-	Window focus;
-	int revert;
-	XGetInputFocus(x_display, &focus, &revert);
-
-	XKeyEvent event;
-
-	event.display = x_display;
-	event.window = focus;
-	event.root = root;
-	event.subwindow	= None;
-	event.time = CurrentTime;
-	event.x = 1;
-	event.y = 1;
-	event.x_root = 1;
-	event.y_root = 1;
-	event.same_screen = true;
-	event.keycode = keycode;
-	event.state = modifiers;
-
-	if (press)
-		event.type = KeyPress;
-	else
-		event.type = KeyRelease;
-
-	return event;
-}
-
 
 void handleEvent(const XEvent &x_event)
 {
@@ -75,24 +45,17 @@ void handleEvent(const XEvent &x_event)
 			{
 				quit("q is pressed -> quitting");
 			}
-			XKeyEvent event = createKeyEvent(true, keycode+1 /* TODO remove +1 */, 0);
-			XSendEvent(event.display, event.window, true, KeyPressMask, (XEvent*)&event);
+			sendKey(42, true);
 			break;
 		}
 		case KeyRelease:
 		{
-			int keycode = ((XKeyPressedEvent*)&x_event)->keycode;
-			XKeyEvent event = createKeyEvent(false, keycode+1 /* TODO remove +1 */, 0);
-			XSendEvent(event.display, event.window, true, KeyPressMask, (XEvent*)&event);
+			sendKey(42, false);
 			break;
 		}
 		case ButtonPress:
 		case ButtonRelease:
-			printf("TODO");
-			break;
 		case Expose:
-			printf("whats going on here in expose?");
-			break;
 		case MotionNotify:
 		case ConfigureNotify:
 		default:
@@ -115,4 +78,11 @@ void run()
 		}
 		counter++;
 	}
+}
+
+void sendKey(int keycode, bool pressed)
+{
+	XUngrabKeyboard(x_display, CurrentTime);
+	XTestFakeKeyEvent(x_display, keycode, pressed, 0);
+	XGrabKeyboard(x_display, DefaultRootWindow(x_display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
 }

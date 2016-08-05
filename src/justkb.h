@@ -17,3 +17,4 @@ void init();
 void uninit();
 void handleEvent(const XEvent &x_event);
 void run(); // onEvent: calls handleEvent(XEvent)
+void sendKey(int keycode, bool pressed);
