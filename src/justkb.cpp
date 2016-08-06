@@ -23,12 +23,12 @@ void Jkb::init()
 		running = false;
 	}
 
-	XGrabKeyboard(display, DefaultRootWindow(display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
+	grab();
 }
 
 void Jkb::uninit()
 {
-	XUngrabKeyboard(display, CurrentTime);
+	ungrab();
 
 	if (XCloseDisplay(display))
 	{
@@ -87,7 +87,27 @@ void Jkb::run()
 
 void Jkb::sendKey(int keycode, bool pressed)
 {
-	XUngrabKeyboard(display, CurrentTime);
+	ungrab();
 	XTestFakeKeyEvent(display, keycode, pressed, 0);
+	grab();
+}
+
+void Jkb::sendKeys(int keycodes[], bool pressed[], unsigned int number)
+{
+	ungrab();
+	for (unsigned int i = 0; i < number; i++)
+	{
+		XTestFakeKeyEvent(display, keycodes[i], pressed[i], 0);
+	}
+	grab();
+}
+
+void Jkb::grab()
+{
 	XGrabKeyboard(display, DefaultRootWindow(display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
+}
+
+void Jkb::ungrab()
+{
+	XUngrabKeyboard(display, CurrentTime);
 }

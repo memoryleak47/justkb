@@ -17,6 +17,10 @@ class Jkb
 	private:
 		static void handleEvent(const XEvent &x_event);
 		static void sendKey(int keycode, bool pressed);
+		static void sendKeys(int keycodes[], bool pressed[], unsigned int number);
+		static void grab();
+		static void ungrab();
 		static Display* display;
 		static bool running;
+
 };
