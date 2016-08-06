@@ -102,6 +102,21 @@ void Jkb::sendKeys(int keycodes[], bool pressed[], unsigned int number)
 	grab();
 }
 
+void Jkb::sendKey(KeySym keysym, bool pressed)
+{
+	sendKey(XKeysymToKeycode(display, keysym), pressed);
+}
+
+void Jkb::sendKeys(KeySym keysyms[], bool pressed[], unsigned int number)
+{
+	ungrab();
+	for (unsigned int i = 0; i < number; i++)
+	{
+		XTestFakeKeyEvent(display, XKeysymToKeycode(display, keysyms[i]), pressed[i], 0);
+	}
+	grab();
+}
+
 void Jkb::grab()
 {
 	XGrabKeyboard(display, DefaultRootWindow(display), true, GrabModeAsync, GrabModeAsync, CurrentTime);
