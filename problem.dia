@@ -1,6 +1,6 @@
 node '`DST`' '-59.5' '203.5' '`a => b`\n`b => a`'
 node '`XTestFakeKeyEvent()`' '-314.5' '-227.5' 'press/release any key'
-node '`XGrabKey()` / `XGrabKeyboard()`' '-32.5' '-270.5' 'ONLY you get specific keys events.'
+node '`XGrabKey()` / `XGrabKeyboard()`' '-32.5' '-270.5' 'ONLY you get specific keys events.\n--> Other windows lose input-focus.\nDoesn\'t look pretty.'
 node '`XSelectInput()`' '235.5' '-265.5' 'You ALSO get specific keys events.'
 node '`XSendEvent()`' '-559.5' '-213.5' 'Send events,\nAlso key evsnts.\nBut they will probabbly be ignored :/'
 node 'Stop \'n\' Go - Grab' '-117.5' '-127.5' 'At the beginning every key is grabbed.\nWhen you want to send a keyevent:\n` you ungrab that key;\n XTestFakeKeyEvent();\n grab that key again;`\n\nInvolves sleeping; workaroundy..'
