@@ -1,7 +1,7 @@
 both: compile run
 
 compile:
-	g++ src/*.cpp -lX11 -lXtst -o exe
+	g++ src/*.cpp -o exe
 run:
-	./exe
+	sudo ./exe
 .PHONY: both compile run
