@@ -53,6 +53,7 @@ void Jkb::init()
 void Jkb::uninit()
 {
 	ungrab();
+	assert(ioctl(ufd, UI_DEV_DESTROY) >= 0);
 	assert(close(ufd) >= 0);
 }
 
