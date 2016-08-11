@@ -24,6 +24,8 @@ void Jkb::start()
 void Jkb::init()
 {
 	running = true;
+
+	// initing uinput
 	assert((ufd = open("/dev/uinput", O_WRONLY | O_NONBLOCK)) >= 0); // may also be in /dev/input/uinput
 	assert(ioctl(ufd, UI_SET_EVBIT, EV_KEY) >= 0);
 
@@ -44,12 +46,14 @@ void Jkb::init()
 	assert(write(ufd, &udev, sizeof(udev)) >= 0);
 	assert(ioctl(ufd, UI_DEV_CREATE) >= 0);
 
+	// grab
 	grab();
 }
 
 void Jkb::uninit()
 {
 	ungrab();
+	assert(close(ufd) >= 0);
 }
 
 void Jkb::handleKeyEvent(int keycode, int value)
@@ -129,8 +133,19 @@ void Jkb::sendKey(int keycode, int value)
 
 	assert(write(ufd, &ev, sizeof(ev)) >= 0);
 
-	// grab
 
+	// workaround of workarounds
+	struct input_event e;
+	memset(&e, 0, sizeof(e));
+	e.type = 0;
+	e.code = 0;
+	e.value = 0;
+	for (int i = 0; i < 6; i++) // anywhy 8 commands are needed, to make it process
+	{
+		assert(write(ufd, &e, sizeof(e)) >= 0);
+	}
+
+	// grab
 	grab();
 }
 
@@ -142,5 +157,6 @@ void Jkb::grab()
 
 void Jkb::ungrab()
 {
+	assert(ioctl(efd, EVIOCGRAB, 0) >= 0);
 	assert(close(efd) >= 0);
 }
