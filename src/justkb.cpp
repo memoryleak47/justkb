@@ -11,8 +11,8 @@
 #include <assert.h>
 
 bool Jkb::running;
-int Jkb::efd; // event fd
-int Jkb::ufd; // uinput fd
+int Jkb::grab_fd; // event fd
+int Jkb::uinput_fd; // uinput fd
 
 void Jkb::start()
 {
@@ -26,12 +26,12 @@ void Jkb::init()
 	running = true;
 
 	// initing uinput
-	assert((ufd = open("/dev/uinput", O_WRONLY | O_NONBLOCK)) >= 0); // may also be in /dev/input/uinput
-	assert(ioctl(ufd, UI_SET_EVBIT, EV_KEY) >= 0);
+	assert((uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK)) >= 0); // may also be in /dev/input/uinput
+	assert(ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY) >= 0);
 
 	for (int i = 0; i < 256; i++)
 	{
-		assert(ioctl(ufd, UI_SET_KEYBIT, i) >= 0);
+		assert(ioctl(uinput_fd, UI_SET_KEYBIT, i) >= 0);
 	}
 
 	uinput_user_dev udev;
@@ -43,18 +43,20 @@ void Jkb::init()
 	udev.id.product = 0xfedc;
 	udev.id.version = 1;
 
-	assert(write(ufd, &udev, sizeof(udev)) >= 0);
-	assert(ioctl(ufd, UI_DEV_CREATE) >= 0);
+	assert(write(uinput_fd, &udev, sizeof(udev)) >= 0);
+	assert(ioctl(uinput_fd, UI_DEV_CREATE) >= 0);
 
-	// grab
-	grab();
+	assert((grab_fd = open("/dev/input/by-path/platform-i8042-serio-0-event-kbd", O_RDONLY)) >= 0);
+	assert(ioctl(grab_fd, EVIOCGRAB, 1) >= 0);
 }
 
 void Jkb::uninit()
 {
-	ungrab();
-	assert(ioctl(ufd, UI_DEV_DESTROY) >= 0);
-	assert(close(ufd) >= 0);
+	assert(ioctl(grab_fd, EVIOCGRAB, 0) >= 0);
+	assert(close(grab_fd) >= 0);
+
+	assert(ioctl(uinput_fd, UI_DEV_DESTROY) >= 0);
+	assert(close(uinput_fd) >= 0);
 }
 
 void Jkb::handleKeyEvent(int keycode, int value)
@@ -90,7 +92,7 @@ void Jkb::run()
 			return;
 		}
 
-		n = read(efd, &ev, sizeof ev);
+		n = read(grab_fd, &ev, sizeof ev);
 		if (n == (ssize_t)-1)
 		{
 			if (errno == EINTR)
@@ -114,6 +116,7 @@ void Jkb::run()
 	}
 }
 
+// seems like sendKey(int, int) insertions are not grabbed :D
 void Jkb::sendKey(int keycode, int value)
 {
 	// init
@@ -126,14 +129,8 @@ void Jkb::sendKey(int keycode, int value)
 	ev.code = keycode;
 	ev.value = value;
 
-	// ungrab
-
-	ungrab();
-
 	// inject
-
-	assert(write(ufd, &ev, sizeof(ev)) >= 0);
-
+	assert(write(uinput_fd, &ev, sizeof(ev)) >= 0);
 
 	// workaround of workarounds
 	struct input_event e;
@@ -143,21 +140,6 @@ void Jkb::sendKey(int keycode, int value)
 	e.value = 0;
 	for (int i = 0; i < 6; i++) // anywhy 8 commands are needed, to make it process
 	{
-		assert(write(ufd, &e, sizeof(e)) >= 0);
+		assert(write(uinput_fd, &e, sizeof(e)) >= 0);
 	}
-
-	// grab
-	grab();
-}
-
-void Jkb::grab()
-{
-	assert((efd = open("/dev/input/by-path/platform-i8042-serio-0-event-kbd", O_RDONLY)) >= 0);
-	assert(ioctl(efd, EVIOCGRAB, 1) >= 0);
-}
-
-void Jkb::ungrab()
-{
-	assert(ioctl(efd, EVIOCGRAB, 0) >= 0);
-	assert(close(efd) >= 0);
 }

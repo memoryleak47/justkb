@@ -13,10 +13,7 @@ class Jkb
 		// inject
 		static void sendKey(int keycode, int value);
 
-		static void grab();
-		static void ungrab();
-
 		static bool running;
-		static int ufd;
-		static int efd;
+		static int uinput_fd;
+		static int grab_fd;
 };
