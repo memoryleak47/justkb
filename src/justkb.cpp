@@ -10,9 +10,14 @@
 #include <stdio.h>
 #include <assert.h>
 
+#define PRESS 1
+#define RELEASE 0
+
 bool Jkb::running;
 int Jkb::grab_fd; // event fd
 int Jkb::uinput_fd; // uinput fd
+struct input_event Jkb::ev;
+
 
 void Jkb::start()
 {
@@ -66,9 +71,10 @@ void Jkb::handleKeyEvent(int keycode, int value)
 		printf("q -> exit\n");
 		running = false;
 	}
-	else
+	else if (value == PRESS)
 	{
-		sendKey(keycode+1, value);
+		int x[] = {keycode, keycode+1, keycode+2};
+		sendKeys(x, 3);
 	}
 }
 
@@ -116,21 +122,38 @@ void Jkb::run()
 	}
 }
 
-// seems like sendKey(int, int) insertions are not grabbed :D
-void Jkb::sendKey(int keycode, int value)
+// seems like addKeyEvent(int, int) insertions are not grabbed :D
+void Jkb::addKeyEvent(int keycode, int value)
 {
-	// init
-
-	struct input_event ev;
-
-
 	// inject
 	memset(&ev, 0, sizeof(ev));
 	ev.type = EV_KEY;
 	ev.code = keycode;
 	ev.value = value;
 	assert(write(uinput_fd, &ev, sizeof(ev)) >= 0);
+}
 
+void Jkb::sendKey(int keycode)
+{
+	addKeyEvent(keycode, RELEASE);
+	addKeyEvent(keycode, PRESS);
+	addKeyEvent(keycode, RELEASE);
+	flush();
+}
+
+void Jkb::sendKeys(int* keycodes, int count)
+{
+	for (int i = 0; i < count; i++)
+	{
+		addKeyEvent(*(keycodes+i), RELEASE);
+		addKeyEvent(*(keycodes+i), PRESS);
+		addKeyEvent(*(keycodes+i), RELEASE);
+	}
+	flush();
+}
+
+void Jkb::flush()
+{
 	// sync
 	memset(&ev, 0, sizeof(ev));
 	ev.type = EV_SYN;
