@@ -123,23 +123,18 @@ void Jkb::sendKey(int keycode, int value)
 
 	struct input_event ev;
 
-	memset(&ev, 0, sizeof(ev));
 
+	// inject
+	memset(&ev, 0, sizeof(ev));
 	ev.type = EV_KEY;
 	ev.code = keycode;
 	ev.value = value;
-
-	// inject
 	assert(write(uinput_fd, &ev, sizeof(ev)) >= 0);
 
-	// workaround of workarounds
-	struct input_event e;
-	memset(&e, 0, sizeof(e));
-	e.type = 0;
-	e.code = 0;
-	e.value = 0;
-	for (int i = 0; i < 6; i++) // anywhy 8 commands are needed, to make it process
-	{
-		assert(write(uinput_fd, &e, sizeof(e)) >= 0);
-	}
+	// sync
+	memset(&ev, 0, sizeof(ev));
+	ev.type = EV_SYN;
+	ev.code = 0;
+	ev.value = 0;
+	assert(write(uinput_fd, &ev, sizeof(ev)) >= 0);
 }
