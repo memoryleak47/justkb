@@ -1,4 +1,5 @@
 #include <linux/uinput.h>
+#include <X11/Xlib.h>
 
 class Jkb
 {
@@ -12,12 +13,12 @@ class Jkb
 
 		// inject
 		static void addKeyEvent(int keycode, int value);
-		static void sendKey(int keycode);
-		static void sendKeys(int* keycodes, int count);
+		static void sendKeysym(KeySym keysym);
 		static void flush();
 
 		static bool running;
 		static int uinput_fd;
 		static int grab_fd;
 		static struct input_event ev;
+		static Display* display;
 };

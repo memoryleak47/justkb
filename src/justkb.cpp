@@ -9,15 +9,17 @@
 #include <errno.h>
 #include <stdio.h>
 #include <assert.h>
+#include <X11/keysym.h>
 
-#define PRESS 1
-#define RELEASE 0
+constexpr int RELEASE = 0;
+constexpr int PRESS = 1;
+constexpr int MAINKEYCODE = 42;
 
 bool Jkb::running;
 int Jkb::grab_fd; // event fd
 int Jkb::uinput_fd; // uinput fd
 struct input_event Jkb::ev;
-
+Display* Jkb::display;
 
 void Jkb::start()
 {
@@ -53,6 +55,9 @@ void Jkb::init()
 
 	assert((grab_fd = open("/dev/input/by-path/platform-i8042-serio-0-event-kbd", O_RDONLY)) >= 0);
 	assert(ioctl(grab_fd, EVIOCGRAB, 1) >= 0);
+
+	// init x
+	display = XOpenDisplay(NULL);
 }
 
 void Jkb::uninit()
@@ -62,6 +67,9 @@ void Jkb::uninit()
 
 	assert(ioctl(uinput_fd, UI_DEV_DESTROY) >= 0);
 	assert(close(uinput_fd) >= 0);
+
+	// uninit x
+	XCloseDisplay(display);
 }
 
 void Jkb::handleKeyEvent(int keycode, int value)
@@ -73,8 +81,7 @@ void Jkb::handleKeyEvent(int keycode, int value)
 	}
 	else if (value == PRESS)
 	{
-		int x[] = {keycode, keycode+1, keycode+2};
-		sendKeys(x, 3);
+		sendKeysym(XK_J);
 	}
 }
 
@@ -97,6 +104,7 @@ void Jkb::run()
 			printf("not running\n");
 			return;
 		}
+
 
 		n = read(grab_fd, &ev, sizeof ev);
 		if (n == (ssize_t)-1)
@@ -133,22 +141,16 @@ void Jkb::addKeyEvent(int keycode, int value)
 	assert(write(uinput_fd, &ev, sizeof(ev)) >= 0);
 }
 
-void Jkb::sendKey(int keycode)
+void Jkb::sendKeysym(KeySym keysym)
 {
-	addKeyEvent(keycode, RELEASE);
-	addKeyEvent(keycode, PRESS);
-	addKeyEvent(keycode, RELEASE);
-	flush();
-}
+	// MAINKEYCODE => keysym
+	KeySym k[]{keysym, keysym, keysym, keysym, keysym, keysym, keysym, keysym};
+	XChangeKeyboardMapping(display, MAINKEYCODE, 8, k, 1);
 
-void Jkb::sendKeys(int* keycodes, int count)
-{
-	for (int i = 0; i < count; i++)
-	{
-		addKeyEvent(*(keycodes+i), RELEASE);
-		addKeyEvent(*(keycodes+i), PRESS);
-		addKeyEvent(*(keycodes+i), RELEASE);
-	}
+	// imitate MAINKEYCODE
+	addKeyEvent(MAINKEYCODE, RELEASE);
+	addKeyEvent(MAINKEYCODE, PRESS);
+	addKeyEvent(MAINKEYCODE, RELEASE);
 	flush();
 }
 

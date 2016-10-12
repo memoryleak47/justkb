@@ -1,8 +1,8 @@
 both: compile run
 
 compile:
-	g++ src/*.cpp -o exe
+	g++ src/*.cpp -std=c++14 -lX11 -o exe
 run:
 	sudo ./exe
-	@set-keymap std
+	#@set-keymap ger && set-keymap std
 .PHONY: both compile run
