@@ -13,7 +13,7 @@
 
 constexpr int RELEASE = 0;
 constexpr int PRESS = 1;
-constexpr int MAINKEYCODE = 42;
+constexpr int MAINKEYCODE = 82;
 
 bool Jkb::running;
 int Jkb::grab_fd; // event fd
@@ -57,7 +57,7 @@ void Jkb::init()
 	assert(ioctl(grab_fd, EVIOCGRAB, 1) >= 0);
 
 	// init x
-	display = XOpenDisplay(NULL);
+	assert(display = XOpenDisplay(NULL));
 }
 
 void Jkb::uninit()
@@ -69,7 +69,7 @@ void Jkb::uninit()
 	assert(close(uinput_fd) >= 0);
 
 	// uninit x
-	XCloseDisplay(display);
+	assert(0 == XCloseDisplay(display));
 }
 
 void Jkb::handleKeyEvent(int keycode, int value)
@@ -145,13 +145,13 @@ void Jkb::sendKeysym(KeySym keysym)
 {
 	// MAINKEYCODE => keysym
 	KeySym k[]{keysym, keysym, keysym, keysym, keysym, keysym, keysym, keysym};
-	XChangeKeyboardMapping(display, MAINKEYCODE, 8, k, 1);
+	assert(0 == XChangeKeyboardMapping(display, MAINKEYCODE, 8, k, 1));
 
 	// imitate MAINKEYCODE
 	addKeyEvent(MAINKEYCODE, RELEASE);
 	addKeyEvent(MAINKEYCODE, PRESS);
 	addKeyEvent(MAINKEYCODE, RELEASE);
-	flush();
+	flush(); // XXX XSync() OR XFlush() don't work
 }
 
 void Jkb::flush()
