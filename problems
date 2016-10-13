@@ -1,8 +1,0 @@
-XChangeKeyboardMapping() seems to need XCloseDisplay() to work
-
-XCloseDisplay() does an XSync(), but adding XSync(d, True) OR XSync(d, False), doesn't help..
-XFlush(d) also doesn't help
-
-XFlush() and XSync instead of flush(), don't flush the buffer
-	I see because I have to type 4 keys => 8 events to receive an automatic SYN-event,
-	so maybe I used them wrong

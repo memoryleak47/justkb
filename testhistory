@@ -1,0 +1,85 @@
+# problems
+
+test1:
+	code: # @sendKeySym()
+		KeySym keysym = XK_J;
+		KeySym k[]{keysym, keysym, keysym, keysym, keysym, keysym, keysym, keysym};
+		assert(0 == XChangeKeyboardMapping(display, MAINKEYCODE, 8, k, 1));
+		std::cout << XKeycodeToKeysym(display, MAINKEYCODE, 0) << std::endl; # gives 74
+		# check_KeySym(to_hex(74)) = 'J'
+		addKeyEvent(MAINKEYCODE, RELEASE);
+		addKeyEvent(MAINKEYCODE, PRESS);
+		addKeyEvent(MAINKEYCODE, RELEASE);
+		flush();
+
+	run-loop_visible-mapping-results:
+		if (MAINKEYCODE = 82) /* NumPad - */:	'0'
+		if (MAINKEYCODE = 8) /* Escape */:	'7'
+		if (MAINKEYCODE = 42) /* g */:		'' # nothing printed there
+
+	after-termination_visible-mapping-results: # correct
+		'J'
+		# XChangeKeyboardMapping() seems to need XCloseDisplay() to work
+
+test2:
+	code: # @sendKeySym()
+		KeySym keysym = XK_J;
+		assert(0 == XChangeKeyboardMapping(display, MAINKEYCODE, 1, &keysym, 1));
+		std::cout << XKeycodeToKeysym(display, MAINKEYCODE, 0) << std::endl; # gives 106
+		# check_KeySym(to_hex(106)) = 'j'
+		addKeyEvent(MAINKEYCODE, RELEASE);
+		addKeyEvent(MAINKEYCODE, PRESS);
+		addKeyEvent(MAINKEYCODE, RELEASE);
+		XFlush(display, False);
+
+	run-loop_visible-mapping-results:
+		if (MAINKEYCODE = 82) /* NumPad - */:	'0' # XXX implicit SYN after pressing 4 keys XXX
+		if (MAINKEYCODE = 8) /* Escape */:	'7' # XXX implicity SYN after pressing 4 keys XXX
+		if (MAINKEYCODE = 42) /* g */:		'' # nothing printed there
+
+	after-termination_visible-mapping-results:
+		none # failed
+
+test3:
+	code: # @sendKeySym()
+		KeySym keysym = XK_J;
+		assert(0 == XChangeKeyboardMapping(display, MAINKEYCODE, 1, &keysym, 1));
+		std::cout << XKeycodeToKeysym(display, MAINKEYCODE, 0) << std::endl; # gives 106
+		# check_KeySym(to_hex(106)) = 'j'
+		addKeyEvent(MAINKEYCODE, RELEASE);
+		addKeyEvent(MAINKEYCODE, PRESS);
+		addKeyEvent(MAINKEYCODE, RELEASE);
+		flush();
+
+	run-loop_visible-mapping-results:
+		if (MAINKEYCODE = 8) /* Escape */:	'7'
+		if (MAINKEYCODE = 82) /* NumPad -*/:	'0'
+		if (MAINKEYCODE = 42) /* g */:		'' # nothing printed there
+
+	after-termination_visible-mapping-results:
+		if (MAINKEYCODE = 8) /* Escape */:	'j' # use Shift to make it a 'J'
+		if (MAINKEYCODE = 82) /* NumPad -*/:	'j' # use Shift to make it a 'J'
+		if (MAINKEYCODE = 42) /* g */:		'j' # use Shift to make it a 'J'
+
+	# XXX if only 1 keysym has been changed, why can I use Shift to get 'J' then? XXX
+
+test4:
+	code: # @sendKeySym()
+		KeySym keysym = XK_J;
+		std::cout << "[ 1 = " << XKeycodeToKeysym(display, MAINKEYCODE, 0) << std::endl;
+		assert(0 == XChangeKeyboardMapping(display, MAINKEYCODE, 1, &keysym, 1));
+		std::cout << "[ 2 = " << XKeycodeToKeysym(display, MAINKEYCODE, 0) << std::endl;
+
+		addKeyEvent(MAINKEYCODE, RELEASE);
+		addKeyEvent(MAINKEYCODE, PRESS);
+		addKeyEvent(MAINKEYCODE, RELEASE);
+		std::cout << "[ 3 = " << XKeycodeToKeysym(display, MAINKEYCODE, 0) << std::endl;
+		flush();
+		std::cout << "[ 4 = " << XKeycodeToKeysym(display, MAINKEYCODE, 0) << std::endl;
+
+	XKeyCodeToKeySym-results:
+		if (MAINKEYCODE == 82) /* NumPad - */:	'65453' # on every std::cout
+		if (MAINKEYCODE == 8) /* Escape */:	'0' # on every std::cout
+		if (MAINKEYCODE == 42) /* g */:		'103' # on every std::cout
+		# XXX what are these values ???
+		# the use of XKeycodeToKeysym changes the values... well thats weird.
